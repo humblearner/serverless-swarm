@@ -13,14 +13,13 @@ At the current state, it is an experimenting ground with working examples that
 produce food for thought and more experimenting.
 
 The sample functions and example wordcount map-reduce workflow are here with
-instructions of how to run them. The bioinformatic part contains some trade-
-secret bits, so it is kept privately and mixed in to run in production. You
+instructions of how to run them. The bioinformatic part contains some trade-secret
+bits, so it is kept privately and mixed in to run in production. You
 are welcome to explore it's orchestration and wiring.
 
 The solution is under active development; your constructive criticism and
 contributions are welcome:  [@dzimine](https://twitter.com/dzimine) on
-Twitter, or as [Github issues](https://github.com/dzimine/serverless-
-swarm/issues).
+Twitter, or as [Github issues](https://github.com/dzimine/serverless-swarm/issues).
 
 
 # Deploying Serverless Swarm, from 0 to 5.
@@ -103,8 +102,8 @@ ready to go.
 ansible-playbook playbook-all.yml -vv -i inventory.my.dev
 ```
 
-Check the action is in place: run `st2 action list --pack=pipeline` and verify
-that it returned some actions.
+In `st2` vagrant image, check the action: run `st2 action list --pack=pipeline` and verify
+that it returned some actions. (Note: Default user/pass for st2: st2admin/st2pass)
 
     TODO: add commands to validate the setup
 
@@ -132,26 +131,26 @@ all VMs at `/faas/functions`.
 
 Login to a VM. Any node would do as docker is installed on all.
 
-    ssh node1.my.dev
+    ssh node1
 
 1. Build a function:
 
     ```
-    cd functions/encode
-    docker build -t encode .
+    cd /faas/functions/encode/
+    sudo docker build -t encode .
     ```
 2. Push the function to local docker registry:
 
     ```
-    docker tag encode pregistry:5000/encode
-    docker push pregistry:5000/encode
+    sudo docker tag encode pregistry:5000/encode
+    sudo docker push pregistry:5000/encode
 
     # Inspect the repository
-    curl --cacert /etc/docker/certs.d/pregistry\:5000/registry.crt https://pregistry:5000/v2/_catalog
+    sudo curl --cacert /etc/docker/certs.d/pregistry\:5000/registry.crt https://pregistry:5000/v2/_catalog
     curl --cacert /etc/docker/certs.d/pregistry\:5000/registry.crt -X GET https://pregistry:5000/v2/encode/tags/list
     ```
     >
-    Note: Registry alias is set as `pregistry:5000` in `/etc/hosts` for brievity and consistency across Vagrand dev and AWS production environments.
+    Note: Registry alias is set as `pregistry:5000` in `/etc/hosts` for brevity and consistency across Vagrant dev and AWS production environments.
 
 4. Run the function:
 
@@ -159,7 +158,7 @@ Login to a VM. Any node would do as docker is installed on all.
     docker run --rm -v /share:/share \
     pregistry:5000/encode -i /share/li.txt -o /share/li.out --delay 1
     ```
-    Reminders:
+    Flags:
 
     * `--rm` to remove container once it exits.
     * `-v` maps `/share` of Vagrant VM to `/share` inside the container.
@@ -171,21 +170,21 @@ Login to a VM. Any node would do as docker is installed on all.
 4. Login to another node, and run the container function from there. It will download the image and run the function.
 
 ### 2. Swarm is coming to town
-Run the job with swarm command-line:
+Run the job with swarm command-line, in `st2` vagrant instance:
 
 ```
-docker service create --name job2 \
+sudo docker service create --name job2 \
 --mount type=bind,source=/share,destination=/share \
 --restart-condition none pregistry:5000/encode \
 -i /share/li.txt -o /share/li.out --delay 20
 ```
 
-Run it a few times, enjoy seeing them pile up in visualizer, just be sure to
-give a different job name.
+Run it a few times, enjoy seeing them pile up in [vizualizer](http://st2.my.dev:8080),
+just be sure to give a different job name.
 
 ### 3. Now repeat with StackStorm
 
-Run the job via stackstorm:
+Similar jobs can be executed via stackstorm CLI:
 
 ```
 st2 run -a pipeline.run_job \
@@ -197,7 +196,7 @@ args="-i","/share/li.txt","-o","/share/test.out","--delay",3
 To clean-up jobs (we've got a bunch!):
 
 ```
-docker service rm $(docker service ls | grep "job*" | awk '{print $2}')
+sudo docker service rm $(sudo docker service ls | grep "job*" | awk '{print $2}')
 ```
 
 ### 4. Stitch with Workflow
@@ -213,10 +212,10 @@ Use StackStorm UI at [https://st2.my.dev](https://st2.my.dev) to inspect workflo
 
 ## Wordcount Map-Reduce Example
 
-Here we run wordcount map-reduce sample on Swarm cluster. The `split`, `map`,
-and `reduce` are containerized functions, `run_job` action runs them on Swarm
-cluster, StackStorm workflow is orchestrating the end-to-end process.
-
+Another awesome example to run wordcount map-reduce sample on Swarm cluster.
+The `split`, `map`, and `reduce` are containerized functions, `run_job` action
+runs them on Swarm cluster. StackStorm workflow is used to orchestrate the
+end-to-end process.
 
 Create containerized functions for map-reduce and push them to the Registry:
 

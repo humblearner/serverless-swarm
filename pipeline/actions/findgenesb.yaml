@@ -1,7 +1,7 @@
 ---
 name: findgenesb
 pack: pipeline
-description: "Computes findgenesb pipeline: "
+description: "Computes findgenesb pipeline"
 runner_type: mistral-v2
 entry_point: workflows/findgenesb.yaml
 parameters:
