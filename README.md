@@ -5,7 +5,8 @@ annotations (a very exciting topic on it’s own). The emerging serverless
 framework begins to look promising for other applications, and may be
 interesting to the community.
 
-At a minimum, this serves as a convenient and reliable playground for Docker Swarm, with local Registry and other cool tools, on your dev box.
+At a minimum, this serves as a convenient and reliable playground for Docker Swarm, with local
+Registry and other cool tools, on your dev box.
 
 At best, this may involve into a solid Serverless framework.
 
@@ -24,8 +25,9 @@ Twitter, or as [Github issues](https://github.com/dzimine/serverless-swarm/issue
 
 # Deploying Serverless Swarm, from 0 to 5.
 
-Follow these step-by-step instructions to set up Docker Swarm, configure the rest of framework parts, and run a sample serverless pipeline. All you need to get a swarm cluster running **conviniently**, per [Swarm
-tutorial](https://docs.docker.com/engine/swarm/swarm-tutorial/).
+Follow these step-by-step instructions to set up Docker Swarm, configure the rest of framework parts,
+and run a sample serverless pipeline. All you need to get a swarm cluster running **conveniently**, per
+[Swarm tutorial](https://docs.docker.com/engine/swarm/swarm-tutorial/).
 
 ## Clone the repo
 This repo uses submodules, remember to use `recursive` when cloning:
@@ -39,12 +41,11 @@ cd serverless-swarm
 git submodule update --init --recursive
 ```
 ## Setup
-Vagrant is used to create a local dev environment representative of a production one. Ansible is used to deploy software. Convinience
-tricks inspired by [6 practices for super smooth Ansible
-experience](http://hakunin.com/six-ansible-practices). Default config will set 3 boxes,
-named `st2.my.dev`, `node1.my.dev`, and `node2.my.dev`, with ssh access
-configured for root. Roles are described as code in [`inventory.my.dev`](./inventory.my.dev) for local Vagrant setup, and in [inventory.aws](./inventory.aws) for AWS deployment.
-Dah, this proto setup is for play, not for production.
+Vagrant is used to create a local dev environment representative of a production one. Ansible is used to deploy software.
+Convenience tricks inspired by [6 practices for super smooth Ansible experience](http://hakunin.com/six-ansible-practices).
+Default config will set 3 boxes, named `st2.my.dev`, `node1.my.dev`, and `node2.my.dev`, with ssh access
+configured for root. Roles are described as code in [`inventory.my.dev`](./inventory.my.dev) for local Vagrant setup,
+and in [inventory.aws](./inventory.aws) for AWS deployment. Dah, this proto setup is for play, not for production.
 
 | Host          | Role            |
 |---------------|-----------------|
@@ -94,7 +95,9 @@ up. Clean it up by hands.
 
 #### 2. Deploy Software
 
-This ansible playbook will create Swarm Cluster, deploy and configure local private Registry at `pregistry:5000`, install StackStorm, and do other final config touches, like setting up st2 packs and getting vizualizer at [http://st2.my.dev:8080](http://st2.my.dev:8080). At successful run of the command,
+This ansible playbook will create Swarm Cluster, deploy and configure local private Registry at
+`pregistry:5000`, install StackStorm, and do other final config touches, like setting up st2 packs and getting
+vizualizer at [http://st2.my.dev:8080](http://st2.my.dev:8080). At successful run of the command,
 you'll have a functional Swarm Cluster, StackStorm, and serverless pipelines
 ready to go.
 
@@ -103,7 +106,9 @@ ansible-playbook playbook-all.yml -vv -i inventory.my.dev
 ```
 
 In `st2` vagrant image, check the action: run `st2 action list --pack=pipeline` and verify
-that it returned some actions. (Note: Default user/pass for st2: st2admin/st2pass)
+that it returned some actions.
+
+(Note: Default user/pass for st2: st2admin/st2pass, and can be added using `st2 login <user>`)
 
     TODO: add commands to validate the setup
 
@@ -131,7 +136,7 @@ all VMs at `/faas/functions`.
 
 Login to a VM. Any node would do as docker is installed on all.
 
-    ssh node1
+    vagrant ssh node1
 
 1. Build a function:
 
@@ -147,7 +152,7 @@ Login to a VM. Any node would do as docker is installed on all.
 
     # Inspect the repository
     sudo curl --cacert /etc/docker/certs.d/pregistry\:5000/registry.crt https://pregistry:5000/v2/_catalog
-    curl --cacert /etc/docker/certs.d/pregistry\:5000/registry.crt -X GET https://pregistry:5000/v2/encode/tags/list
+    sudo curl --cacert /etc/docker/certs.d/pregistry\:5000/registry.crt -X GET https://pregistry:5000/v2/encode/tags/list
     ```
     >
     Note: Registry alias is set as `pregistry:5000` in `/etc/hosts` for brevity and consistency across Vagrant dev and AWS production environments.
@@ -155,7 +160,7 @@ Login to a VM. Any node would do as docker is installed on all.
 4. Run the function:
 
     ```
-    docker run --rm -v /share:/share \
+    sudo docker run --rm -v /share:/share \
     pregistry:5000/encode -i /share/li.txt -o /share/li.out --delay 1
     ```
     Flags:
@@ -220,8 +225,8 @@ end-to-end process.
 Create containerized functions for map-reduce and push them to the Registry:
 
 ```
-cd functions/wordcount
-./docker-build.sh
+cd /faas/functions/wordcount
+sudo ./docker-build.sh
 
 ```
 
